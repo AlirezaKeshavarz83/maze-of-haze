@@ -1,0 +1,234 @@
+:root {
+  --ink: #151515;
+  --line: #262626;
+  --hard-bg-1: #111215;
+  --hard-bg-2: #201716;
+  --hard-ink: #d7c6b5;
+  --paper: rgba(255, 255, 255, 0.9);
+  --shadow: rgba(15, 15, 15, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+  background: radial-gradient(circle at 30% 15%, #f8f8f6 0%, #e8e8e4 65%, #d9d9d4 100%);
+  color: var(--ink);
+}
+
+#app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid rgba(21, 21, 21, 0.18);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.brand {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.topbar-copy {
+  margin: 0;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.layout {
+  min-height: 0;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  border: 2px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  padding: 0.7rem 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.btn:hover { background: #ececea; }
+
+.mode-buttons {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.mode-btn.active {
+  background: #0f0f0f;
+  color: #fff;
+}
+
+.hint, .muted { font-size: 0.9rem; line-height: 1.4; }
+.muted { color: #505050; }
+
+.game-area {
+  position: relative;
+  min-height: calc(100vh - 62px);
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.55), rgba(227, 227, 223, 0.25));
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.menu-overlay {
+  background: linear-gradient(180deg, rgba(247, 247, 245, 0.82), rgba(232, 232, 227, 0.9));
+}
+
+.card {
+  min-width: 250px;
+  max-width: 28rem;
+  background: var(--paper);
+  border: 2px solid rgba(21, 21, 21, 0.95);
+  box-shadow: 0 18px 50px var(--shadow);
+  padding: 1.25rem;
+}
+
+#levelCompleteOverlay .card,
+#gameCompleteOverlay .card {
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  min-height: 10rem;
+}
+
+.intro-card h1,
+.card h2 {
+  margin-top: 0;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#levelCompleteOverlay h2,
+#gameCompleteOverlay h2 {
+  margin: 0;
+}
+
+.sidebar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 9.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 2px solid rgba(21, 21, 21, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  z-index: 2;
+}
+
+.status-stack {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.65rem;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+select {
+  padding: 0.7rem 0.8rem;
+  border: 2px solid var(--line);
+  background: #fff;
+  font: inherit;
+}
+
+.hidden { display: none; }
+
+body.mode-medium {
+  background: radial-gradient(circle at 48% 16%, #ffb0bf 0%, #ffd6df 26%, #f4c3cf 56%, #ece0e2 100%);
+}
+
+body.mode-medium .topbar,
+body.mode-medium .sidebar,
+body.mode-medium .game-area,
+body.mode-medium .card {
+  background: rgba(255, 238, 243, 0.86);
+  border-color: rgba(118, 18, 39, 0.22);
+}
+
+body.mode-medium .topbar-copy {
+  color: #8d1634;
+}
+
+body.mode-hard {
+  background: radial-gradient(circle at 65% 20%, #2c2321 0%, #191919 50%, #0e0f12 100%);
+  color: var(--hard-ink);
+}
+
+body.mode-hard .topbar,
+body.mode-hard .sidebar,
+body.mode-hard .game-area,
+body.mode-hard .card {
+  background: rgba(20, 20, 24, 0.86);
+  color: var(--hard-ink);
+  border-color: #483a36;
+}
+
+body.mode-hard .btn {
+  background: #1b1a1f;
+  border-color: #584741;
+  color: var(--hard-ink);
+}
+
+body.mode-hard .btn:hover { background: #28242d; }
+body.mode-hard .menu-overlay { background: rgba(7, 7, 10, 0.72); }
+body.mode-hard .topbar-copy { color: #bda992; }
+body.mode-hard select {
+  background: #1b1a1f;
+  color: var(--hard-ink);
+  border-color: #584741;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    top: auto;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: 8.5rem;
+  }
+
+  .topbar {
+    gap: 0.75rem;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
