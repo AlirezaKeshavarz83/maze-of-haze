@@ -15,6 +15,7 @@ export function createGame({ canvas, ui }) {
   const ctx = canvas.getContext("2d");
   const state = createInitialState();
   let levelAdvanceTimer = null;
+  let selectedMenuMode = "easy";
 
   function clearTransientState() {
     state.animation = null;
@@ -52,6 +53,9 @@ export function createGame({ canvas, ui }) {
     for (const btn of ui.modeButtons) {
       btn.classList.toggle("active", btn.dataset.mode === state.mode);
     }
+    for (const btn of ui.menuModeButtons) {
+      btn.classList.toggle("active", btn.dataset.mode === selectedMenuMode);
+    }
     document.body.classList.toggle("mode-medium", state.mode === "medium");
     document.body.classList.toggle("mode-hard", state.mode === "hard");
   }
@@ -77,7 +81,9 @@ export function createGame({ canvas, ui }) {
     clearTransientState();
     state.levelIndex = 0;
     state.screen = SCREEN.PLAYING;
+    state.mode = selectedMenuMode;
     prepareLevel();
+    updateModeUI();
     updateLevelUI();
     updateScreenUI();
   }
@@ -130,9 +136,20 @@ export function createGame({ canvas, ui }) {
     updateModeUI();
   }
 
-  ui.startBtn.addEventListener("click", () => {
-    setMode(ui.startMode.value);
-    startRun();
+  ui.menuModeButtons.forEach((btn) => {
+    btn.addEventListener("mouseenter", () => {
+      if (state.screen !== SCREEN.MENU) return;
+      setMode(btn.dataset.mode);
+    });
+    btn.addEventListener("focus", () => {
+      if (state.screen !== SCREEN.MENU) return;
+      setMode(btn.dataset.mode);
+    });
+    btn.addEventListener("click", () => {
+      selectedMenuMode = btn.dataset.mode;
+      setMode(selectedMenuMode);
+      startRun();
+    });
   });
 
   ui.newGameBtn.addEventListener("click", () => {

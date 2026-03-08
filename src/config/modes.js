@@ -1,20 +1,20 @@
 export const MODES = {
   easy: {
-    label: "Easy",
+    label: "Before",
     visibleWalls: "all",
     resetOnCollision: false,
     revealOnCollision: false,
     temporaryRevealOnCollision: false
   },
   medium: {
-    label: "Medium",
+    label: "Collapse",
     visibleWalls: "discovered",
     resetOnCollision: true,
     revealOnCollision: true,
     temporaryRevealOnCollision: false
   },
   hard: {
-    label: "Hard",
+    label: "After",
     visibleWalls: "temporary",
     resetOnCollision: true,
     revealOnCollision: false,

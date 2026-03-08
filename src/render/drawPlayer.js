@@ -59,6 +59,7 @@ export function drawPlayer(ctx, state, metrics, theme, now) {
   const animOrigin = anim.origin ?? state.player;
   const cx = originX + animOrigin.col * cellW + cellW / 2;
   const cy = originY + animOrigin.row * cellH + cellH / 2;
+  const breathe = 1 + Math.sin(now * 0.0032) * 0.028;
 
   if (state.animation?.type === "impact-reset" && anim.hide) return;
 
@@ -66,7 +67,7 @@ export function drawPlayer(ctx, state, metrics, theme, now) {
   ctx.globalAlpha = anim.alpha;
   ctx.fillStyle = theme.player;
   ctx.beginPath();
-  ctx.arc(cx + anim.x, cy + anim.y, Math.min(cellW, cellH) * 0.26, 0, Math.PI * 2);
+  ctx.arc(cx + anim.x, cy + anim.y, Math.min(cellW, cellH) * 0.26 * breathe, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }

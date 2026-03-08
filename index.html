@@ -9,7 +9,7 @@
     <div id="app">
       <header class="topbar">
         <div class="brand">Haze Maze</div>
-        <p class="topbar-copy">Arrow keys or WASD. No map. No mercy.</p>
+        <p class="topbar-copy">Arrow keys or WASD</p>
       </header>
 
       <main class="layout">
@@ -22,26 +22,22 @@
               <span id="modeLabel"></span>
             </div>
             <div class="mode-buttons">
-              <button class="btn mode-btn" data-mode="easy">Easy</button>
-              <button class="btn mode-btn" data-mode="medium">Medium</button>
-              <button class="btn mode-btn" data-mode="hard">Hard</button>
+              <button class="mode-btn" data-mode="easy">Before</button>
+              <button class="mode-btn" data-mode="medium">Collapse</button>
+              <button class="mode-btn" data-mode="hard">After</button>
             </div>
           </aside>
 
           <div class="overlay menu-overlay" id="menuScreen">
             <div class="card intro-card">
               <h1>Haze Maze</h1>
-              <p class="muted">Find the exit. The maze changes every level. Walls do not announce themselves.</p>
-              <div class="row">
-                <label for="startMode">Starting mode</label>
-                <select id="startMode">
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
+              <p class="muted intro-copy">A world in three conditions.</p>
+              <div class="menu-modes" id="menuModes">
+                <button class="menu-mode active" data-mode="easy">Before</button>
+                <button class="menu-mode" data-mode="medium">Collapse</button>
+                <button class="menu-mode" data-mode="hard">After</button>
               </div>
-              <button id="startBtn" class="btn">Play</button>
-              <p class="hint">Controls: Arrow keys or WASD</p>
+              <p class="hint">Find the exit. Walls reveal themselves only through impact.</p>
             </div>
           </div>
 

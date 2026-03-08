@@ -72,9 +72,11 @@ export function drawScene(ctx, canvas, state, now) {
   const scale = Math.min(availableWidth / state.cols, availableHeight / state.rows);
   const boardWidth = scale * state.cols;
   const boardHeight = scale * state.rows;
+  const driftX = Math.sin(now * 0.00023) * 3 * (canvas.width / Math.max(canvas.clientWidth || canvas.width, 1));
+  const driftY = Math.cos(now * 0.00019) * 2 * (canvas.height / Math.max(canvas.clientHeight || canvas.height, 1));
   const metrics = {
-    originX: (canvas.width - boardWidth) / 2,
-    originY: (canvas.height - boardHeight) / 2,
+    originX: (canvas.width - boardWidth) / 2 + driftX,
+    originY: (canvas.height - boardHeight) / 2 + driftY,
     cellW: scale,
     cellH: scale,
     rows: state.rows,

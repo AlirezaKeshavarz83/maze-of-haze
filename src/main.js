@@ -8,12 +8,11 @@ createGame({
   ui: {
     menuScreen: document.getElementById("menuScreen"),
     modePanel: document.getElementById("modePanel"),
-    startBtn: document.getElementById("startBtn"),
-    startMode: document.getElementById("startMode"),
     newGameBtn: document.getElementById("newGameBtn"),
     levelCompleteOverlay: document.getElementById("levelCompleteOverlay"),
     gameCompleteOverlay: document.getElementById("gameCompleteOverlay"),
     modeButtons: Array.from(document.querySelectorAll(".mode-btn")),
+    menuModeButtons: Array.from(document.querySelectorAll(".menu-mode")),
     levelLabel: document.getElementById("levelLabel"),
     modeLabel: document.getElementById("modeLabel")
   }
