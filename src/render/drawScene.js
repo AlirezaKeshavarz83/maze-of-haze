@@ -20,7 +20,7 @@ function drawBoardBoundaries(ctx, metrics, mode) {
   const right = metrics.originX + boardWidth;
   const top = metrics.originY;
   const bottom = metrics.originY + boardHeight;
-  const fill = mode === "hard" ? "rgba(216, 196, 172, 0.22)" : "rgba(40, 18, 24, 0.2)";
+  const fill = mode === "hard" ? "rgba(106, 98, 90, 0.18)" : "rgba(40, 18, 24, 0.2)";
   const size = 4 * metrics.pixelRatio;
   const offset = 10 * metrics.pixelRatio;
 
@@ -72,20 +72,30 @@ export function drawScene(ctx, canvas, state, now) {
   const scale = Math.min(availableWidth / state.cols, availableHeight / state.rows);
   const boardWidth = scale * state.cols;
   const boardHeight = scale * state.rows;
-  const driftX = Math.sin(now * 0.00023) * 3 * (canvas.width / Math.max(canvas.clientWidth || canvas.width, 1));
-  const driftY = Math.cos(now * 0.00019) * 2 * (canvas.height / Math.max(canvas.clientHeight || canvas.height, 1));
+  const pixelRatio = canvas.clientWidth > 0 ? canvas.width / canvas.clientWidth : 1;
+  const driftX = Math.sin(now * 0.00023) * 3 * pixelRatio;
+  const driftY = Math.cos(now * 0.00019) * 2 * pixelRatio;
+  let shakeX = 0;
+  let shakeY = 0;
+  if (state.shake) {
+    const t = Math.max(0, Math.min(1, (now - state.shake.startedAt) / state.shake.duration));
+    const decay = 1 - t;
+    const pulse = Math.sin(t * Math.PI * 4.5);
+    shakeX = pulse * state.shake.amplitude * decay * pixelRatio;
+    shakeY = Math.cos(t * Math.PI * 3.2) * state.shake.amplitude * 0.5 * decay * pixelRatio;
+  }
   const metrics = {
-    originX: (canvas.width - boardWidth) / 2 + driftX,
-    originY: (canvas.height - boardHeight) / 2 + driftY,
+    originX: (canvas.width - boardWidth) / 2 + driftX + shakeX,
+    originY: (canvas.height - boardHeight) / 2 + driftY + shakeY,
     cellW: scale,
     cellH: scale,
     rows: state.rows,
     cols: state.cols,
-    pixelRatio: canvas.clientWidth > 0 ? canvas.width / canvas.clientWidth : 1
+    pixelRatio
   };
 
   drawBoardBoundaries(ctx, metrics, state.mode);
-  drawWalls(ctx, state, metrics, theme);
+  drawWalls(ctx, state, metrics, theme, now);
   drawMarkers(ctx, state, metrics, theme);
   drawPlayer(ctx, state, metrics, theme, now);
   drawEffects(ctx, canvas, state.mode, theme, now);

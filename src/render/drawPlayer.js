@@ -65,9 +65,30 @@ export function drawPlayer(ctx, state, metrics, theme, now) {
 
   ctx.save();
   ctx.globalAlpha = anim.alpha;
+  const radius = Math.min(cellW, cellH) * 0.248 * breathe;
+  if (theme.playerWarmGlow) {
+    ctx.fillStyle = `${theme.playerWarmGlow}20`;
+    ctx.beginPath();
+    ctx.arc(cx + anim.x, cy + anim.y, radius * 1.75, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = `${theme.playerGlow}26`;
+    ctx.beginPath();
+    ctx.arc(cx + anim.x, cy + anim.y, radius * 1.38, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   ctx.fillStyle = theme.player;
   ctx.beginPath();
-  ctx.arc(cx + anim.x, cy + anim.y, Math.min(cellW, cellH) * 0.26 * breathe, 0, Math.PI * 2);
+  ctx.arc(cx + anim.x, cy + anim.y, radius, 0, Math.PI * 2);
   ctx.fill();
+
+  if (theme.playerStroke) {
+    ctx.strokeStyle = theme.playerStroke;
+    ctx.lineWidth = Math.max(1.2 * metrics.pixelRatio, radius * 0.11);
+    ctx.beginPath();
+    ctx.arc(cx + anim.x, cy + anim.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.restore();
 }

@@ -1,14 +1,27 @@
 export function drawBoard(ctx, width, height, theme, mode) {
-  ctx.fillStyle = theme.boardBg;
-  ctx.fillRect(0, 0, width, height);
+  if (mode === "hard") {
+    const gradient = ctx.createRadialGradient(
+      width * 0.5,
+      height * 0.47,
+      Math.min(width, height) * 0.035,
+      width * 0.5,
+      height * 0.52,
+      Math.max(width, height) * 0.58
+    );
+    gradient.addColorStop(0, theme.floor);
+    gradient.addColorStop(0.16, theme.floor);
+    gradient.addColorStop(1, theme.boardBg);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+  } else {
+    ctx.fillStyle = theme.boardBg;
+    ctx.fillRect(0, 0, width, height);
+  }
 
   ctx.fillStyle = theme.floor;
   ctx.fillRect(10, 10, width - 20, height - 20);
 
   if (mode === "medium") {
-    ctx.fillStyle = theme.floorShadow;
-    ctx.fillRect(10, height - 18, width - 20, 8);
-
     ctx.fillStyle = theme.grain;
     for (let i = 0; i < 180; i += 1) {
       const x = 10 + ((i * 37) % Math.max(1, width - 20));

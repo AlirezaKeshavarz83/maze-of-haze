@@ -16,7 +16,9 @@ export function createInitialState() {
     discoveredWalls: new Set(),
     bloodEffects: new Map(),
     temporaryWalls: new Map(),
+    fadingWalls: new Map(),
     animation: null,
-    inputLockedUntil: 0
+    inputLockedUntil: 0,
+    shake: null
   };
 }

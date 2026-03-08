@@ -21,6 +21,8 @@ export function createGame({ canvas, ui }) {
     state.animation = null;
     state.inputLockedUntil = 0;
     state.temporaryWalls.clear();
+    state.fadingWalls.clear();
+    state.shake = null;
   }
 
   function resizeCanvas() {
@@ -45,6 +47,7 @@ export function createGame({ canvas, ui }) {
     state.discoveredWalls = new Set();
     state.bloodEffects = new Map();
     state.temporaryWalls = new Map();
+    state.fadingWalls = new Map();
     clearTransientState();
   }
 
@@ -173,6 +176,9 @@ export function createGame({ canvas, ui }) {
     cleanupTemporaryWalls(state, now);
     if (state.animation && now - state.animation.startedAt >= state.animation.duration) {
       state.animation = null;
+    }
+    if (state.shake && now - state.shake.startedAt >= state.shake.duration) {
+      state.shake = null;
     }
 
     drawScene(ctx, canvas, state, now);

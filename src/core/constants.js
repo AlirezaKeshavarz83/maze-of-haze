@@ -14,4 +14,5 @@ export const SCREEN = {
   GAME_COMPLETE: "game-complete"
 };
 
-export const HARD_REVEAL_MS = 1400;
+export const HARD_REVEAL_MS = 1150;
+export const HARD_REVEAL_FADE_MS = 220;

@@ -1,3 +1,8 @@
+function addHexAlpha(hex, alpha) {
+  const value = Math.max(0, Math.min(255, Math.round(alpha * 255)));
+  return `${hex}${value.toString(16).padStart(2, "0")}`;
+}
+
 export function drawMarkers(ctx, state, metrics, theme) {
   const { originX, originY, cellW, cellH } = metrics;
   const size = Math.min(cellW, cellH);
@@ -9,7 +14,7 @@ export function drawMarkers(ctx, state, metrics, theme) {
   const scy = sy + cellH * 0.5;
   const sOuter = size * 0.31;
   ctx.strokeStyle = theme.start;
-  ctx.lineWidth = line;
+  ctx.lineWidth = line * 0.95;
   ctx.beginPath();
   ctx.arc(scx, scy, sOuter, 0, Math.PI * 2);
   ctx.stroke();
@@ -21,16 +26,16 @@ export function drawMarkers(ctx, state, metrics, theme) {
   const fOuter = size * 0.33;
   if (theme.finishGlow) {
     const glow = ctx.createRadialGradient(fcx, fcy, size * 0.08, fcx, fcy, fOuter * 1.5);
-    glow.addColorStop(0, `${theme.finishGlow}00`);
-    glow.addColorStop(0.65, `${theme.finishGlow}66`);
-    glow.addColorStop(1, `${theme.finishGlow}00`);
+    glow.addColorStop(0, addHexAlpha(theme.finishGlow, 0));
+    glow.addColorStop(0.65, addHexAlpha(theme.finishGlow, 0.22));
+    glow.addColorStop(1, addHexAlpha(theme.finishGlow, 0));
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(fcx, fcy, fOuter * 1.5, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.strokeStyle = theme.finish;
-  ctx.lineWidth = line;
+  ctx.lineWidth = line * 0.95;
   ctx.beginPath();
   ctx.arc(fcx, fcy, fOuter, 0, Math.PI * 2);
   ctx.stroke();

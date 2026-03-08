@@ -1,26 +1,94 @@
-import { HARD_REVEAL_MS } from "../core/constants.js";
+import { HARD_REVEAL_FADE_MS, HARD_REVEAL_MS } from "../core/constants.js";
 import { wallKeyFromMove } from "../maze/wallKeys.js";
 
 const DEATH_INPUT_DELAY_MS = 320;
 
 function createBloodEffect() {
-  const droplets = Array.from({ length: 22 }, () => ({
-    along: Math.random(),
-    offset: (Math.random() - 0.5) * 0.45,
-    distance: 0.02 + Math.pow(Math.random(), 1.8) * 0.72,
-    radius: 0.04 + Math.random() * 0.11,
-    smear: 0.08 + Math.random() * 0.2,
-    shade: 0.4 + Math.random() * 0.6
+  const impact = 0.5;
+  const local = (spread) => Math.max(0.04, Math.min(0.96, impact + (Math.random() - Math.random()) * spread));
+  const arcDistance = (tangent, near, far, power = 1.45) => {
+    const edge = Math.min(1, Math.abs(tangent));
+    const centerBias = Math.pow(1 - edge, power);
+    return near + (far - near) * centerBias;
+  };
+  const clampAlong = (value) => Math.max(0.08, Math.min(0.92, value));
+
+  const core = {
+    along: impact,
+    distance: 0.012 + Math.random() * 0.04,
+    radius: 0.2 + Math.random() * 0.12,
+    squash: 0.72 + Math.random() * 0.28,
+    shade: 0.62 + Math.random() * 0.28
+  };
+
+  const arcCount = 16 + Math.floor(Math.random() * 6);
+  const arc = Array.from({ length: arcCount }, (_, index) => {
+    const base = arcCount <= 1 ? 0.5 : index / (arcCount - 1);
+    const tangent = (base - 0.5) * 1.62 + (Math.random() - Math.random()) * 0.1;
+    const edge = Math.min(1, Math.abs(tangent));
+    return {
+      along: clampAlong(0.5 + tangent * 0.42 + (Math.random() - Math.random()) * 0.025),
+      tangent,
+      distance: arcDistance(tangent, 0.018, 0.22 + Math.random() * 0.08, 1 + Math.random() * 0.55) + Math.random() * 0.045,
+      radius: 0.055 + (1 - edge) * 0.09 + Math.random() * 0.09,
+      shade: 0.44 + Math.random() * 0.5
+    };
+  });
+
+  const spray = Array.from({ length: 16 + Math.floor(Math.random() * 7) }, () => ({
+    tangent: (Math.random() - 0.5) * 1.42,
+    along: 0,
+    distance: 0,
+    radius: 0.022 + Math.random() * 0.11,
+    smear: 0.04 + Math.random() * 0.2,
+    shade: 0.38 + Math.random() * 0.58
+  })).map((item) => ({
+    ...item,
+    along: clampAlong(0.5 + item.tangent * 0.38 + (Math.random() - Math.random()) * 0.08),
+    distance: arcDistance(item.tangent, 0.06 + Math.random() * 0.04, 0.92 + Math.random() * 0.24, 1.2 + Math.random() * 0.9) + Math.random() * 0.12
   }));
 
-  const drips = Array.from({ length: 7 }, () => ({
-    along: Math.random(),
-    distance: 0.02 + Math.random() * 0.26,
-    length: 0.16 + Math.random() * 0.26,
-    width: 0.02 + Math.random() * 0.03
+  const satellites = Array.from({ length: 4 + Math.floor(Math.random() * 3) }, () => ({
+    tangent: (Math.random() - 0.5) * 1.5,
+    along: 0,
+    distance: 0,
+    radius: 0.035 + Math.random() * 0.13,
+    shade: 0.34 + Math.random() * 0.5
+  })).map((item) => ({
+    ...item,
+    along: clampAlong(0.5 + item.tangent * 0.34 + (Math.random() - Math.random()) * 0.11),
+    distance: arcDistance(item.tangent, 0.16 + Math.random() * 0.08, 0.58 + Math.random() * 0.18, 0.9 + Math.random() * 0.6) + Math.random() * 0.14
   }));
 
-  return { droplets, drips };
+  const streaks = Array.from({ length: 4 + Math.floor(Math.random() * 3) }, () => ({
+    tangent: (Math.random() - 0.5) * 0.92,
+    along: 0,
+    distance: 0,
+    length: 0.16 + Math.random() * 0.32,
+    width: 0.024 + Math.random() * 0.03,
+    shade: 0.45 + Math.random() * 0.45
+  })).map((item) => ({
+    ...item,
+    along: clampAlong(0.5 + item.tangent * 0.3 + (Math.random() - Math.random()) * 0.06),
+    distance: arcDistance(item.tangent, 0.035 + Math.random() * 0.03, 0.28 + Math.random() * 0.12, 1.15 + Math.random() * 0.5) + Math.random() * 0.05
+  }));
+
+  const drips = Array.from({ length: 2 + Math.floor(Math.random() * 3) }, () => ({
+    along: local(0.12),
+    distance: 0.04 + Math.random() * 0.18,
+    length: 0.16 + Math.random() * 0.24,
+    width: 0.018 + Math.random() * 0.028
+  }));
+
+  return { impact, core, arc, spray, satellites, streaks, drips };
+}
+
+function triggerShake(state, now, amplitude = 2.4, duration = 120) {
+  state.shake = {
+    startedAt: now,
+    duration,
+    amplitude
+  };
 }
 
 function impactSideFromDirection(direction) {
@@ -30,11 +98,32 @@ function impactSideFromDirection(direction) {
   return "left";
 }
 
+function activeHardWallProgress(expiry, now) {
+  const remaining = Math.max(0, expiry - now);
+  const fadeWindow = Math.min(260, HARD_REVEAL_MS * 0.24);
+  return fadeWindow <= 0 ? 1 : Math.max(0, Math.min(1, 1 - (remaining / fadeWindow)));
+}
+
+function startHardWallFade(state, key, now) {
+  const expiry = state.temporaryWalls.get(key) ?? now;
+  const fromProgress = activeHardWallProgress(expiry, now);
+  state.fadingWalls.set(key, {
+    endsAt: now + HARD_REVEAL_FADE_MS,
+    fromProgress
+  });
+}
+
+function getActiveHardWallKey(state) {
+  for (const key of state.temporaryWalls.keys()) return key;
+  return null;
+}
+
 export function handleBlockedMove(state, direction, now) {
   const { row, col } = state.player;
   const wallKey = wallKeyFromMove(row, col, direction);
 
   if (state.mode === "easy") {
+    triggerShake(state, now, 1.8, 110);
     state.animation = {
       type: "bounce",
       direction,
@@ -46,6 +135,7 @@ export function handleBlockedMove(state, direction, now) {
   }
 
   if (state.mode === "medium") {
+    triggerShake(state, now, 2.5, 120);
     state.discoveredWalls.add(wallKey);
     const impactSide = impactSideFromDirection(direction);
     const effect = state.bloodEffects.get(wallKey) ?? {};
@@ -66,8 +156,21 @@ export function handleBlockedMove(state, direction, now) {
     return;
   }
 
-  state.temporaryWalls.clear();
-  state.temporaryWalls.set(wallKey, now + HARD_REVEAL_MS);
+  const activeKey = getActiveHardWallKey(state);
+
+  if (activeKey === wallKey) {
+    state.fadingWalls.delete(wallKey);
+    state.temporaryWalls.set(wallKey, now + HARD_REVEAL_MS);
+  } else {
+    if (activeKey) {
+      startHardWallFade(state, activeKey, now);
+    }
+    state.temporaryWalls.clear();
+    state.fadingWalls.delete(wallKey);
+    state.temporaryWalls.set(wallKey, now + HARD_REVEAL_MS);
+  }
+
+  triggerShake(state, now, 2.8, 130);
   state.animation = {
     type: "impact-reset",
     direction,
@@ -86,6 +189,13 @@ export function handleBlockedMove(state, direction, now) {
 
 export function cleanupTemporaryWalls(state, now) {
   for (const [key, expiry] of state.temporaryWalls.entries()) {
-    if (expiry <= now) state.temporaryWalls.delete(key);
+    if (expiry <= now) {
+      state.temporaryWalls.delete(key);
+      startHardWallFade(state, key, now);
+    }
+  }
+
+  for (const [key, fade] of state.fadingWalls.entries()) {
+    if (fade.endsAt <= now) state.fadingWalls.delete(key);
   }
 }
