@@ -17,6 +17,7 @@ export function setupKeyboard(onDirection) {
   const handler = (event) => {
     const dir = KEY_TO_DIR[event.key];
     if (!dir) return;
+    if (event.repeat) return;
     event.preventDefault();
     onDirection(dir);
   };

@@ -20,6 +20,7 @@ export function createGame({ canvas, ui }) {
   function clearTransientState() {
     state.animation = null;
     state.inputLockedUntil = 0;
+    state.collapseBursts = [];
     state.activeWall = null;
     state.disappearingWall = null;
     state.shake = null;
@@ -46,6 +47,7 @@ export function createGame({ canvas, ui }) {
     state.player = { ...state.start };
     state.discoveredWalls = new Set();
     state.bloodEffects = new Map();
+    state.collapseBursts = [];
     state.activeWall = null;
     state.disappearingWall = null;
     clearTransientState();
@@ -96,7 +98,9 @@ export function createGame({ canvas, ui }) {
 
     const now = performance.now();
     if (now < state.inputLockedUntil) return;
-    if (state.animation && now - state.animation.startedAt < state.animation.duration) return;
+    if (state.animation && now - state.animation.startedAt < state.animation.duration && state.mode !== "hard") {
+      return;
+    }
 
     const result = attemptMove(state, direction);
     if (result.blocked) {

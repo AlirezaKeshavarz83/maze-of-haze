@@ -53,7 +53,7 @@ function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
     ctx.save();
     ctx.translate(px, py);
     ctx.rotate((Math.sin(along * 13.7) * 0.2) + (isHorizontal ? 0 : Math.PI * 0.5));
-    ctx.fillStyle = bloodColor(theme, 0.5 + shade * 0.28, shade > 0.8 ? "highlight" : shade < 0.46 ? "faded" : "fresh");
+    ctx.fillStyle = bloodColor(theme, 0.54 + shade * 0.26, shade > 0.72 ? "highlight" : shade < 0.34 ? "faded" : "fresh");
     ctx.beginPath();
     ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -90,7 +90,7 @@ function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
       0.92 + droplet.shade * 0.22,
       droplet.shade
     );
-    ctx.strokeStyle = bloodColor(theme, 0.2 + droplet.shade * 0.15, "dark");
+    ctx.strokeStyle = bloodColor(theme, 0.24 + droplet.shade * 0.16, droplet.shade > 0.66 ? "fresh" : "dark");
     ctx.lineWidth = Math.max(1.05 * metrics.pixelRatio, thickness * 0.085);
     ctx.beginPath();
     ctx.moveTo(px, py);
@@ -117,7 +117,7 @@ function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
     const alongY = isHorizontal ? 0 : primary * streak.along;
     const px = x1 + alongX + tangentX * thickness * streak.tangent + normalX * thickness * streak.distance;
     const py = y1 + alongY + tangentY * thickness * streak.tangent + normalY * thickness * streak.distance;
-    ctx.strokeStyle = bloodColor(theme, 0.34 + streak.shade * 0.22, streak.shade > 0.8 ? "highlight" : "dark");
+    ctx.strokeStyle = bloodColor(theme, 0.38 + streak.shade * 0.2, streak.shade > 0.72 ? "highlight" : "fresh");
     ctx.lineWidth = Math.max(1.15 * metrics.pixelRatio, thickness * streak.width);
     ctx.beginPath();
     ctx.moveTo(px, py);
@@ -133,7 +133,7 @@ function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
     const py = y1 + (isHorizontal ? 0 : primary * drip.along) + normalY * thickness * drip.distance;
     const dx = 0;
     const dy = thickness * drip.length * 1.42;
-    ctx.strokeStyle = bloodColor(theme, 0.38, "dried");
+    ctx.strokeStyle = bloodColor(theme, 0.42, "dark");
     ctx.lineWidth = Math.max(1.2 * metrics.pixelRatio, thickness * drip.width * 0.82);
     ctx.beginPath();
     ctx.moveTo(px, py);
@@ -166,8 +166,8 @@ function hashNoise(key, step) {
 function drawMediumWire(ctx, x1, y1, x2, y2, metrics, theme, wallKey) {
   const isHorizontal = Math.abs(y1 - y2) < 0.001;
   const length = isHorizontal ? x2 - x1 : y2 - y1;
-  const segments = Math.max(8, Math.round(length / (14 * metrics.pixelRatio)));
-  const jitter = 3.4 * metrics.pixelRatio;
+  const segments = Math.max(12, Math.round(length / (10 * metrics.pixelRatio)));
+  const jitter = 4.8 * metrics.pixelRatio;
   ctx.strokeStyle = theme.wall;
   ctx.lineWidth = 3 * metrics.pixelRatio;
   ctx.beginPath();
@@ -180,8 +180,8 @@ function drawMediumWire(ctx, x1, y1, x2, y2, metrics, theme, wallKey) {
     const baseNoise = hashNoise(wallKey, i) - 0.5;
     const prevNoise = i > 0 ? hashNoise(wallKey, i - 1) - 0.5 : baseNoise;
     const nextNoise = i < segments ? hashNoise(wallKey, i + 1) - 0.5 : baseNoise;
-    const blendedNoise = (baseNoise * 0.55) + (prevNoise * 0.2) + (nextNoise * 0.25);
-    const wobble = blendedNoise * jitter * edgeBias;
+    const spikeNoise = ((baseNoise * 0.72) + (prevNoise * 0.08) + (nextNoise * 0.2)) * (0.82 + hashNoise(`${wallKey}:spike`, i) * 0.55);
+    const wobble = spikeNoise * jitter * edgeBias;
     const px = isHorizontal ? baseX : baseX + wobble;
     const py = isHorizontal ? baseY + wobble : baseY;
     if (i === 0) ctx.moveTo(px, py);
@@ -197,9 +197,9 @@ function drawMediumWire(ctx, x1, y1, x2, y2, metrics, theme, wallKey) {
     const t = i / segments;
     const baseX = x1 + (x2 - x1) * t;
     const baseY = y1 + (y2 - y1) * t;
-    const noise = (hashNoise(`${wallKey}:rough`, i) - 0.5) * 1.1 * metrics.pixelRatio;
-    const px = isHorizontal ? baseX : baseX + noise;
-    const py = isHorizontal ? baseY + noise : baseY;
+    const roughNoise = (hashNoise(`${wallKey}:rough`, i) - 0.5) * 1.8 * metrics.pixelRatio;
+    const px = isHorizontal ? baseX : baseX + roughNoise;
+    const py = isHorizontal ? baseY + roughNoise : baseY;
     if (i === 0) ctx.moveTo(px, py);
     else ctx.lineTo(px, py);
   }

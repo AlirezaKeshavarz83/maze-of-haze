@@ -20,8 +20,14 @@ function drawBoardBoundaries(ctx, metrics, mode) {
   const right = metrics.originX + boardWidth;
   const top = metrics.originY;
   const bottom = metrics.originY + boardHeight;
-  const fill = mode === "hard" ? "rgba(106, 98, 90, 0.18)" : "rgba(40, 18, 24, 0.2)";
-  const size = 4 * metrics.pixelRatio;
+  const fill =
+    mode === "hard"
+      ? "rgba(106, 98, 90, 0.44)"
+      : mode === "medium"
+        ? "rgba(40, 18, 24, 0.32)"
+        : "rgba(36, 36, 36, 0.18)";
+  const size =
+    (mode === "hard" ? 5.5 : mode === "medium" ? 4.6 : 4) * metrics.pixelRatio;
   const offset = 10 * metrics.pixelRatio;
 
   function drawCornerL(x, y, horizontalDir, verticalDir) {
@@ -73,8 +79,9 @@ export function drawScene(ctx, canvas, state, now) {
   const boardWidth = scale * state.cols;
   const boardHeight = scale * state.rows;
   const pixelRatio = canvas.clientWidth > 0 ? canvas.width / canvas.clientWidth : 1;
-  const driftX = Math.sin(now * 0.00023) * 3 * pixelRatio;
-  const driftY = Math.cos(now * 0.00019) * 2 * pixelRatio;
+  const driftEnabled = state.mode === "hard";
+  const driftX = driftEnabled ? Math.sin(now * 0.00023) * 3 * pixelRatio : 0;
+  const driftY = driftEnabled ? Math.cos(now * 0.00019) * 2 * pixelRatio : 0;
   let shakeX = 0;
   let shakeY = 0;
   if (state.shake) {
@@ -98,5 +105,5 @@ export function drawScene(ctx, canvas, state, now) {
   drawWalls(ctx, state, metrics, theme, now);
   drawMarkers(ctx, state, metrics, theme);
   drawPlayer(ctx, state, metrics, theme, now);
-  drawEffects(ctx, canvas, state.mode, theme, now);
+  drawEffects(ctx, canvas, state, theme, now, metrics);
 }

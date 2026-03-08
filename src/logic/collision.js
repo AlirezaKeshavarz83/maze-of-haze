@@ -2,6 +2,16 @@ import { HARD_REVEAL_FADE_MS, HARD_REVEAL_MS } from "../core/constants.js";
 import { wallKeyFromMove } from "../maze/wallKeys.js";
 
 const DEATH_INPUT_DELAY_MS = 320;
+const COLLAPSE_BURST_COLORS = ["light", "light", "light", "light", "mid", "mid", "dark"];
+const EASY_BOUNCE_ANIMATION_MS = 180;
+const MEDIUM_RESET_ANIMATION_MS = 220;
+const MEDIUM_HIDDEN_MS = 120;
+const HARD_FADE_OUT_MS = 300;
+const HARD_FADE_IN_DELAY_MS = 120;
+const HARD_FADE_IN_MS = 420;
+const HARD_RESET_ANIMATION_MS = HARD_FADE_IN_DELAY_MS + HARD_FADE_IN_MS;
+const EASY_SHAKE = { amplitude: 1.8, duration: 110 };
+const MEDIUM_SHAKE = { amplitude: 2.5, duration: 120 };
 
 function createBloodEffect() {
   const impact = 0.5;
@@ -83,6 +93,37 @@ function createBloodEffect() {
   return { impact, core, arc, spray, satellites, streaks, drips };
 }
 
+function createCollapseBurst(row, col, direction, now) {
+  const isHorizontal = direction === "up" || direction === "down";
+  const normalSign = direction === "up" || direction === "left" ? -1 : 1;
+  const count = 12 + ((Math.random() * 7) | 0);
+  const particles = Array.from({ length: count }, () => {
+    const tangent = (Math.random() - 0.5) * 0.95;
+    const spread = 0.04 + Math.pow(Math.random(), 1.4) * 0.38;
+    return {
+      along: Math.max(0.1, Math.min(0.9, 0.5 + (Math.random() - Math.random()) * 0.2)),
+      tangent,
+      normal: spread * normalSign,
+      vx: ((Math.random() - Math.random()) * 0.28) + (isHorizontal ? tangent * 0.24 : spread * normalSign * 0.05),
+      vy: (Math.random() * 0.22) + (isHorizontal ? spread * normalSign * 0.05 : tangent * 0.18),
+      wiggle: 0.08 + Math.random() * 0.22,
+      wobble: 0.6 + Math.random() * 1.3,
+      size: Math.random() < 0.5 ? 2 : Math.random() < 0.88 ? 3 : 4,
+      alpha: 0.18 + Math.random() * 0.18,
+      color: COLLAPSE_BURST_COLORS[(Math.random() * COLLAPSE_BURST_COLORS.length) | 0]
+    };
+  });
+
+  return {
+    row,
+    col,
+    direction,
+    createdAt: now,
+    lifetime: 360 + ((Math.random() * 360) | 0),
+    particles
+  };
+}
+
 function triggerShake(state, now, amplitude = 2.4, duration = 120) {
   state.shake = {
     startedAt: now,
@@ -118,20 +159,21 @@ export function handleBlockedMove(state, direction, now) {
   const wallKey = wallKeyFromMove(row, col, direction);
 
   if (state.mode === "easy") {
-    triggerShake(state, now, 1.8, 110);
+    triggerShake(state, now, EASY_SHAKE.amplitude, EASY_SHAKE.duration);
     state.animation = {
       type: "bounce",
       direction,
       startedAt: now,
-      duration: 180,
+      duration: EASY_BOUNCE_ANIMATION_MS,
       origin: { row, col }
     };
     return;
   }
 
   if (state.mode === "medium") {
-    triggerShake(state, now, 2.5, 120);
+    triggerShake(state, now, MEDIUM_SHAKE.amplitude, MEDIUM_SHAKE.duration);
     state.discoveredWalls.add(wallKey);
+    state.collapseBursts.push(createCollapseBurst(row, col, direction, now));
     const impactSide = impactSideFromDirection(direction);
     const effect = state.bloodEffects.get(wallKey) ?? {};
     const layers = effect[impactSide] ?? [];
@@ -142,8 +184,8 @@ export function handleBlockedMove(state, direction, now) {
       type: "impact-reset",
       direction,
       startedAt: now,
-      duration: 220,
-      hiddenDuration: 120,
+      duration: MEDIUM_RESET_ANIMATION_MS,
+      hiddenDuration: MEDIUM_HIDDEN_MS,
       origin: { row, col }
     };
     state.player = { ...state.start };
@@ -166,24 +208,25 @@ export function handleBlockedMove(state, direction, now) {
     }
   }
 
-  triggerShake(state, now, 2.8, 130);
   state.animation = {
     type: "impact-reset",
     direction,
     startedAt: now,
-    duration: 520,
-    hiddenDuration: 120,
-    fadeOutDuration: 180,
-    fadeInDelay: 170,
-    fadeInDuration: 220,
+    duration: HARD_RESET_ANIMATION_MS,
+    hiddenDuration: MEDIUM_HIDDEN_MS,
+    fadeOutDuration: HARD_FADE_OUT_MS,
+    fadeInDelay: HARD_FADE_IN_DELAY_MS,
+    fadeInDuration: HARD_FADE_IN_MS,
     origin: { row, col },
     respawn: { ...state.start }
   };
   state.player = { ...state.start };
-  state.inputLockedUntil = now + DEATH_INPUT_DELAY_MS;
+  state.inputLockedUntil = now + HARD_FADE_IN_DELAY_MS + DEATH_INPUT_DELAY_MS;
 }
 
 export function cleanupTemporaryWalls(state, now) {
+  state.collapseBursts = state.collapseBursts.filter((burst) => burst.createdAt + burst.lifetime > now);
+
   if (state.activeWall && state.activeWall.expiresAt <= now) {
     startHardWallFade(state, state.activeWall, now);
     state.activeWall = null;

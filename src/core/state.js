@@ -15,6 +15,7 @@ export function createInitialState() {
     finish: { row: 0, col: 0 },
     discoveredWalls: new Set(),
     bloodEffects: new Map(),
+    collapseBursts: [],
     activeWall: null,
     disappearingWall: null,
     animation: null,
