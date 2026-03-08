@@ -1,28 +1,51 @@
 export const THEME = {
   easy: {
     boardBg: "#ffffff",
-    floor: "#f8f8f8",
+    floor: "#f5f5f5",
     wall: "#111111",
     player: "#111111",
-    start: "#25b89a",
-    finish: "#ff8d5c"
+    start: "#111111",
+    finish: "#444444",
+    finishGlow: "#d9d9d9",
+    text: "#111111",
+    mutedText: "#777777"
   },
   medium: {
-    boardBg: "#fff2f5",
-    floor: "#ffe2ea",
+    boardBg: "#f2efea",
+    floor: "#ece7e1",
+    floorShadow: "#e4ded6",
+    grain: "#dcd5cc",
+    gridHint: "#ddd6cf",
     wall: "#111111",
+    wallVariation: "#2a2a2a",
     player: "#111111",
-    start: "#25b89a",
-    finish: "#ff8d5c",
-    blood: "#8f0f1a"
+    start: "#111111",
+    finish: "#444444",
+    finishGlow: "#c9c3bb",
+    bloodFresh: "#7a0f12",
+    bloodDark: "#4c090b",
+    bloodDried: "#2b0506",
+    bloodHighlight: "#a0181b",
+    bloodFaded: "#6b2a2a",
+    text: "#111111",
+    mutedText: "#777777"
   },
   hard: {
-    boardBg: "#131418",
-    floor: "#1a1c22",
-    wall: "#b8a28f",
-    player: "#e8d5bd",
-    start: "#5cf6de",
-    finish: "#ff9a67",
-    glow: "rgba(226, 167, 97, 0.12)"
+    boardBg: "#1a1a1a",
+    floor: "#2a2a2a",
+    wall: "#6b3a3a",
+    wallEdge: "#8a4f4f",
+    wallGlow: "#a35e5e",
+    player: "#e6e6e6",
+    playerGlow: "#f2f2f2",
+    start: "#5b5b5b",
+    finish: "#d6b04d",
+    finishGlow: "#f0d889",
+    finishFade: "#7a6a33",
+    dust: "#3c2f2f",
+    text: "#e0e0e0",
+    secondaryText: "#a8a8a8",
+    mutedText: "#6a6a6a",
+    glow: "rgba(163, 94, 94, 0.06)"
   }
 };

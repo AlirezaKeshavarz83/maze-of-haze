@@ -19,6 +19,16 @@ export function drawMarkers(ctx, state, metrics, theme) {
   const fcx = fx + cellW * 0.5;
   const fcy = fy + cellH * 0.5;
   const fOuter = size * 0.33;
+  if (theme.finishGlow) {
+    const glow = ctx.createRadialGradient(fcx, fcy, size * 0.08, fcx, fcy, fOuter * 1.5);
+    glow.addColorStop(0, `${theme.finishGlow}00`);
+    glow.addColorStop(0.65, `${theme.finishGlow}66`);
+    glow.addColorStop(1, `${theme.finishGlow}00`);
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(fcx, fcy, fOuter * 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.strokeStyle = theme.finish;
   ctx.lineWidth = line;
   ctx.beginPath();

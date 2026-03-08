@@ -19,34 +19,38 @@ body {
 
 #app {
   min-height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  position: relative;
 }
 
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 1rem;
-  border-bottom: 2px solid rgba(21, 21, 21, 0.18);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 3;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  backdrop-filter: none;
+  pointer-events: none;
 }
 
 .brand {
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 
 .topbar-copy {
   margin: 0;
-  font-size: 0.82rem;
-  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   opacity: 0.72;
+  color: #777777;
 }
 
 .layout {
@@ -94,11 +98,11 @@ body {
 }
 
 .hint, .muted { font-size: 0.9rem; line-height: 1.4; }
-.muted { color: #505050; }
+.muted { color: #777777; }
 
 .game-area {
   position: relative;
-  min-height: calc(100vh - 62px);
+  min-height: 100vh;
   overflow: hidden;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.55), rgba(227, 227, 223, 0.25));
 }
@@ -194,7 +198,7 @@ canvas {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  width: 9.5rem;
+  width: 11rem;
   padding: 0.75rem;
   background: rgba(255, 255, 255, 0.78);
   border: 2px solid rgba(21, 21, 21, 0.9);
@@ -223,28 +227,33 @@ select {
 .hidden { display: none; }
 
 body.mode-medium {
-  background: radial-gradient(circle at 48% 16%, #ffb0bf 0%, #ffd6df 26%, #f4c3cf 56%, #ece0e2 100%);
+  background: radial-gradient(circle at 48% 16%, #f2efea 0%, #ece7e1 44%, #e4ded6 100%);
 }
 
 body.mode-medium .topbar,
 body.mode-medium .sidebar,
 body.mode-medium .game-area,
 body.mode-medium .card {
-  background: rgba(255, 238, 243, 0.86);
-  border-color: rgba(118, 18, 39, 0.22);
+  background: rgba(242, 239, 234, 0.88);
+  border-color: rgba(17, 17, 17, 0.14);
+}
+
+body.mode-medium .topbar {
+  background: transparent;
+  border-color: transparent;
 }
 
 body.mode-medium .topbar-copy {
-  color: #8d1634;
+  color: #777777;
 }
 
 body.mode-medium .menu-mode.active,
 body.mode-medium .mode-btn.active {
-  color: #7f122e;
+  color: #111111;
 }
 
 body.mode-hard {
-  background: radial-gradient(circle at 65% 20%, #2c2321 0%, #191919 50%, #0e0f12 100%);
+  background: radial-gradient(circle at 65% 20%, #2a2a2a 0%, #1a1a1a 54%, #0d0d0d 100%);
   color: var(--hard-ink);
 }
 
@@ -257,6 +266,11 @@ body.mode-hard .card {
   border-color: #483a36;
 }
 
+body.mode-hard .topbar {
+  background: transparent;
+  border-color: transparent;
+}
+
 body.mode-hard .btn {
   background: #1b1a1f;
   border-color: #584741;
@@ -265,10 +279,10 @@ body.mode-hard .btn {
 
 body.mode-hard .btn:hover { background: #28242d; }
 body.mode-hard .menu-overlay { background: rgba(7, 7, 10, 0.72); }
-body.mode-hard .topbar-copy { color: #bda992; }
+body.mode-hard .topbar-copy { color: #6a6a6a; }
 body.mode-hard .menu-mode.active,
 body.mode-hard .mode-btn.active {
-  color: #efe2d2;
+  color: #e0e0e0;
 }
 body.mode-hard select {
   background: #1b1a1f;
@@ -281,12 +295,11 @@ body.mode-hard select {
     top: auto;
     right: 0.75rem;
     bottom: 0.75rem;
-    width: 8.5rem;
+    width: 10rem;
   }
 
   .topbar {
-    gap: 0.75rem;
-    align-items: flex-start;
-    flex-direction: column;
+    top: 0.85rem;
+    left: 0.85rem;
   }
 }
