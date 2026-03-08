@@ -4,7 +4,7 @@ import { HARD_REVEAL_FADE_MS, HARD_REVEAL_MS } from "../core/constants.js";
 function shouldRenderWall(state, key) {
   if (state.mode === "easy") return true;
   if (state.mode === "medium") return state.discoveredWalls.has(key);
-  return state.temporaryWalls.has(key) || state.fadingWalls.has(key);
+  return state.activeWall?.key === key || state.disappearingWall?.key === key;
 }
 
 function hexToRgb(hex) {
@@ -241,14 +241,14 @@ function drawHardNeonWall(ctx, x1, y1, x2, y2, metrics, theme, progress) {
 }
 
 function hardWallProgress(state, key, now) {
-  if (state.fadingWalls.has(key)) {
-    const fade = state.fadingWalls.get(key);
+  if (state.disappearingWall?.key === key) {
+    const fade = state.disappearingWall;
     const remaining = Math.max(0, fade.endsAt - now);
     const t = HARD_REVEAL_FADE_MS <= 0 ? 1 : 1 - (remaining / HARD_REVEAL_FADE_MS);
     return fade.fromProgress + (1 - fade.fromProgress) * t;
   }
 
-  const remaining = Math.max(0, (state.temporaryWalls.get(key) ?? now) - now);
+  const remaining = Math.max(0, (state.activeWall?.key === key ? state.activeWall.expiresAt : now) - now);
   const fadeWindow = Math.min(260, HARD_REVEAL_MS * 0.24);
   return fadeWindow <= 0 ? 1 : Math.max(0, Math.min(1, 1 - (remaining / fadeWindow)));
 }

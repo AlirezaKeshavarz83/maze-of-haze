@@ -20,8 +20,8 @@ export function createGame({ canvas, ui }) {
   function clearTransientState() {
     state.animation = null;
     state.inputLockedUntil = 0;
-    state.temporaryWalls.clear();
-    state.fadingWalls.clear();
+    state.activeWall = null;
+    state.disappearingWall = null;
     state.shake = null;
   }
 
@@ -46,8 +46,8 @@ export function createGame({ canvas, ui }) {
     state.player = { ...state.start };
     state.discoveredWalls = new Set();
     state.bloodEffects = new Map();
-    state.temporaryWalls = new Map();
-    state.fadingWalls = new Map();
+    state.activeWall = null;
+    state.disappearingWall = null;
     clearTransientState();
   }
 

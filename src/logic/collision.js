@@ -104,18 +104,13 @@ function activeHardWallProgress(expiry, now) {
   return fadeWindow <= 0 ? 1 : Math.max(0, Math.min(1, 1 - (remaining / fadeWindow)));
 }
 
-function startHardWallFade(state, key, now) {
-  const expiry = state.temporaryWalls.get(key) ?? now;
-  const fromProgress = activeHardWallProgress(expiry, now);
-  state.fadingWalls.set(key, {
+function startHardWallFade(state, wall, now) {
+  if (!wall) return;
+  state.disappearingWall = {
+    key: wall.key,
     endsAt: now + HARD_REVEAL_FADE_MS,
-    fromProgress
-  });
-}
-
-function getActiveHardWallKey(state) {
-  for (const key of state.temporaryWalls.keys()) return key;
-  return null;
+    fromProgress: wall.expiresAt ? activeHardWallProgress(wall.expiresAt, now) : 0
+  };
 }
 
 export function handleBlockedMove(state, direction, now) {
@@ -156,18 +151,19 @@ export function handleBlockedMove(state, direction, now) {
     return;
   }
 
-  const activeKey = getActiveHardWallKey(state);
-
-  if (activeKey === wallKey) {
-    state.fadingWalls.delete(wallKey);
-    state.temporaryWalls.set(wallKey, now + HARD_REVEAL_MS);
+  if (state.activeWall?.key === wallKey) {
+    state.activeWall.expiresAt = now + HARD_REVEAL_MS;
   } else {
-    if (activeKey) {
-      startHardWallFade(state, activeKey, now);
+    if (state.activeWall) {
+      startHardWallFade(state, state.activeWall, now);
     }
-    state.temporaryWalls.clear();
-    state.fadingWalls.delete(wallKey);
-    state.temporaryWalls.set(wallKey, now + HARD_REVEAL_MS);
+    state.activeWall = {
+      key: wallKey,
+      expiresAt: now + HARD_REVEAL_MS
+    };
+    if (state.disappearingWall?.key === wallKey) {
+      state.disappearingWall = null;
+    }
   }
 
   triggerShake(state, now, 2.8, 130);
@@ -188,14 +184,12 @@ export function handleBlockedMove(state, direction, now) {
 }
 
 export function cleanupTemporaryWalls(state, now) {
-  for (const [key, expiry] of state.temporaryWalls.entries()) {
-    if (expiry <= now) {
-      state.temporaryWalls.delete(key);
-      startHardWallFade(state, key, now);
-    }
+  if (state.activeWall && state.activeWall.expiresAt <= now) {
+    startHardWallFade(state, state.activeWall, now);
+    state.activeWall = null;
   }
 
-  for (const [key, fade] of state.fadingWalls.entries()) {
-    if (fade.endsAt <= now) state.fadingWalls.delete(key);
+  if (state.disappearingWall && state.disappearingWall.endsAt <= now) {
+    state.disappearingWall = null;
   }
 }
