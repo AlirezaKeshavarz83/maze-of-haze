@@ -135,7 +135,7 @@ export function createGame({ canvas, ui }) {
 
     const now = performance.now();
     if (now < state.inputLockedUntil) return;
-    if (state.animation && now - state.animation.startedAt < state.animation.duration && state.mode !== "hard") {
+    if (state.animation && now - state.animation.startedAt < state.animation.duration) {
       return;
     }
 

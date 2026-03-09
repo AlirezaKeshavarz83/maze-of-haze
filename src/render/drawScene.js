@@ -8,6 +8,11 @@ import { getMediumTheme } from "./themes/mediumTheme.js";
 import { getHardTheme } from "./themes/hardTheme.js";
 import { MOBILE_LAYOUT_BREAKPOINT, isPortraitPhoneViewport, shouldRotateBoardForMobile } from "../core/layout.js";
 import { applyBoardTransform } from "./boardTransform.js";
+import { getRenderSizing } from "./renderSizing.js";
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
 
 function themeByMode(mode) {
   if (mode === "easy") return getEasyTheme();
@@ -16,6 +21,7 @@ function themeByMode(mode) {
 }
 
 function drawBoardBoundaries(ctx, metrics, mode) {
+  const sizing = getRenderSizing(metrics);
   const boardWidth = metrics.cellW * metrics.cols;
   const boardHeight = metrics.cellH * metrics.rows;
   const left = metrics.originX;
@@ -28,9 +34,8 @@ function drawBoardBoundaries(ctx, metrics, mode) {
       : mode === "medium"
         ? "rgba(40, 18, 24, 0.32)"
         : "rgba(36, 36, 36, 0.18)";
-  const size =
-    (mode === "hard" ? 5.5 : mode === "medium" ? 4.6 : 4) * metrics.pixelRatio;
-  const offset = 10 * metrics.pixelRatio;
+  const size = sizing.boundaryMark;
+  const offset = sizing.boundaryOffset;
 
   function drawCornerL(x, y, horizontalDir, verticalDir) {
     const arm = size * 2.4;
@@ -80,17 +85,35 @@ export function drawScene(ctx, canvas, state, now) {
   const isPhoneWidth = cssWidth <= MOBILE_LAYOUT_BREAKPOINT;
   const isPortraitPhone = isPortraitPhoneViewport(cssWidth, cssHeight);
   const rotateBoard = shouldRotateBoardForMobile(cssWidth, cssHeight, state.rows, state.cols);
-  const outerPad = Math.max(24 * pixelRatio, Math.min(canvas.width, canvas.height) * 0.03);
-  const fallbackTopInset = isPortraitPhone ? 118 * pixelRatio : 44 * pixelRatio;
+  const minViewport = Math.min(cssWidth, cssHeight);
+  const outerPad = clamp(
+    minViewport * (isPhoneWidth ? 0.032 : 0.03),
+    isPhoneWidth ? 14 : 18,
+    24
+  ) * pixelRatio;
+  const fallbackTopInset = (isPortraitPhone
+    ? clamp(cssHeight * 0.17, 78, 106)
+    : clamp(cssHeight * 0.09, 36, 52)) * pixelRatio;
   const topInset = isPhoneWidth
     ? (state.layoutTopInset > 0 ? state.layoutTopInset * pixelRatio : fallbackTopInset)
     : 0;
-  const bottomInset = isPortraitPhone ? 10 * pixelRatio : 0;
+  const bottomInset = isPortraitPhone ? clamp(cssHeight * 0.012, 4, 8) * pixelRatio : 0;
   const availableWidth = Math.max(pixelRatio, canvas.width - outerPad * 2);
   const availableHeight = Math.max(pixelRatio, canvas.height - outerPad * 2 - topInset - bottomInset);
   const displayCols = rotateBoard ? state.rows : state.cols;
   const displayRows = rotateBoard ? state.cols : state.rows;
-  const scale = Math.min(availableWidth / displayCols, availableHeight / displayRows);
+  let scale = Math.min(availableWidth / displayCols, availableHeight / displayRows);
+  for (let i = 0; i < 2; i += 1) {
+    const sizing = getRenderSizing({
+      cellW: scale,
+      cellH: scale,
+      pixelRatio
+    });
+    const boundaryBudget = (sizing.boundaryOffset + sizing.boundaryMark * 0.5) * 2;
+    const boundedWidth = Math.max(pixelRatio, availableWidth - boundaryBudget);
+    const boundedHeight = Math.max(pixelRatio, availableHeight - boundaryBudget);
+    scale = Math.min(boundedWidth / displayCols, boundedHeight / displayRows);
+  }
   const boardWidth = scale * state.cols;
   const boardHeight = scale * state.rows;
   const renderedBoardWidth = rotateBoard ? boardHeight : boardWidth;

@@ -381,7 +381,7 @@ body.mode-hard select {
     bottom: auto;
     left: calc(var(--safe-left) + 0.75rem);
     display: grid;
-    gap: clamp(1.1rem, 4.6vh, 2.2rem);
+    gap: clamp(1rem, 4.2vh, 1.85rem);
     justify-items: stretch;
   }
 
@@ -397,23 +397,23 @@ body.mode-hard select {
     position: relative;
     top: auto;
     left: auto;
-    max-width: min(58vw, 15rem);
+    max-width: min(60vw, 16rem);
     justify-self: start;
   }
 
   .brand {
-    font-size: 1.08rem;
-    letter-spacing: 0.16em;
+    font-size: clamp(1.02rem, 4.2vw, 1.12rem);
+    letter-spacing: clamp(0.13em, 0.6vw, 0.16em);
   }
 
   .topbar-copy {
-    font-size: 0.68rem;
+    font-size: clamp(0.66rem, 2.5vw, 0.74rem);
   }
 
   .creator-tag {
     left: calc(var(--safe-left) + 0.75rem);
     bottom: calc(var(--safe-bottom) + 0.65rem);
-    font-size: 0.64rem;
+    font-size: clamp(0.62rem, 2.2vw, 0.7rem);
   }
 
   .sidebar {
@@ -423,36 +423,36 @@ body.mode-hard select {
     bottom: auto;
     left: auto;
     width: auto;
-    padding: 0.68rem 0.75rem;
-    border-radius: 1.35rem;
+    padding: clamp(0.58rem, 2.4vw, 0.78rem) clamp(0.62rem, 2.8vw, 0.88rem);
+    border-radius: clamp(1.1rem, 4.4vw, 1.4rem);
     display: grid;
-    gap: 0.55rem;
+    gap: clamp(0.42rem, 1.8vh, 0.62rem);
   }
 
   .status-stack {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem 0.6rem;
+    gap: clamp(0.34rem, 1.2vw, 0.46rem) clamp(0.46rem, 1.8vw, 0.66rem);
     margin-bottom: 0;
-    font-size: 0.76rem;
+    font-size: clamp(0.72rem, 2.8vw, 0.82rem);
   }
 
   .mode-buttons {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.35rem;
+    gap: clamp(0.28rem, 1.2vw, 0.38rem);
   }
 
   .mode-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 2rem;
-    padding: 0.45rem 0.58rem;
+    min-height: clamp(2rem, 8.8vw, 2.35rem);
+    padding: clamp(0.42rem, 1.8vw, 0.52rem) clamp(0.42rem, 1.7vw, 0.62rem);
     border: 1px solid transparent;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.65);
-    font-size: 0.74rem;
+    font-size: clamp(0.7rem, 2.7vw, 0.82rem);
     line-height: 1;
     text-align: center;
     white-space: nowrap;
@@ -506,7 +506,7 @@ body.mode-hard select {
 
 @media (max-width: 760px) and (orientation: landscape) {
   .hud-layer {
-    gap: clamp(0.9rem, 4vh, 1.6rem);
+    gap: clamp(0.8rem, 3.2vh, 1.3rem);
   }
 
   .sidebar {

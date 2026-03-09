@@ -1,5 +1,6 @@
 import { wallKeyFromCell } from "../maze/wallKeys.js";
 import { HARD_REVEAL_FADE_MS, HARD_REVEAL_MS } from "../core/constants.js";
+import { getRenderSizing } from "./renderSizing.js";
 
 function shouldRenderWall(state, key) {
   if (state.mode === "easy") return true;
@@ -30,12 +31,14 @@ function bloodColor(theme, alpha, tone = "fresh") {
   return rgbaFromHex(theme.bloodFresh, alpha);
 }
 
-function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
+function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme, sizing) {
   if (!effect) return;
   const isHorizontal = Math.abs(y1 - y2) < 0.001;
   const primary = isHorizontal ? x2 - x1 : y2 - y1;
-  const cellSize = Math.min(metrics.cellW, metrics.cellH);
-  const thickness = Math.max(4.8 * metrics.pixelRatio, cellSize * 0.12);
+  const thickness = Math.max(
+    sizing.mediumBloodThicknessMinPx * metrics.pixelRatio,
+    sizing.cellSize * sizing.mediumBloodThicknessRatio
+  );
   const offsetSign = wallSide === "top" || wallSide === "left" ? -1 : 1;
   const normalX = isHorizontal ? 0 : offsetSign;
   const normalY = isHorizontal ? offsetSign : 0;
@@ -91,7 +94,10 @@ function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
       droplet.shade
     );
     ctx.strokeStyle = bloodColor(theme, 0.24 + droplet.shade * 0.16, droplet.shade > 0.66 ? "fresh" : "dark");
-    ctx.lineWidth = Math.max(1.05 * metrics.pixelRatio, thickness * 0.085);
+    ctx.lineWidth = Math.max(
+      sizing.mediumSprayStrokeMinPx * metrics.pixelRatio,
+      thickness * sizing.mediumSprayStrokeFactor
+    );
     ctx.beginPath();
     ctx.moveTo(px, py);
     ctx.lineTo(
@@ -118,7 +124,10 @@ function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
     const px = x1 + alongX + tangentX * thickness * streak.tangent + normalX * thickness * streak.distance;
     const py = y1 + alongY + tangentY * thickness * streak.tangent + normalY * thickness * streak.distance;
     ctx.strokeStyle = bloodColor(theme, 0.38 + streak.shade * 0.2, streak.shade > 0.72 ? "highlight" : "fresh");
-    ctx.lineWidth = Math.max(1.15 * metrics.pixelRatio, thickness * streak.width);
+    ctx.lineWidth = Math.max(
+      sizing.mediumStreakStrokeMinPx * metrics.pixelRatio,
+      thickness * streak.width
+    );
     ctx.beginPath();
     ctx.moveTo(px, py);
     ctx.lineTo(
@@ -134,7 +143,10 @@ function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
     const dx = 0;
     const dy = thickness * drip.length * 1.42;
     ctx.strokeStyle = bloodColor(theme, 0.42, "dark");
-    ctx.lineWidth = Math.max(1.2 * metrics.pixelRatio, thickness * drip.width * 0.82);
+    ctx.lineWidth = Math.max(
+      sizing.mediumDripStrokeMinPx * metrics.pixelRatio,
+      thickness * drip.width * sizing.mediumDripStrokeFactor
+    );
     ctx.beginPath();
     ctx.moveTo(px, py);
     ctx.lineTo(px + dx, py + dy);
@@ -142,13 +154,13 @@ function drawBloodMark(ctx, x1, y1, x2, y2, effect, wallSide, metrics, theme) {
   }
 }
 
-function drawMediumBlood(ctx, x1, y1, x2, y2, effectBySide, metrics, theme) {
+function drawMediumBlood(ctx, x1, y1, x2, y2, effectBySide, metrics, theme, sizing) {
   if (!effectBySide) return;
   const isHorizontal = Math.abs(y1 - y2) < 0.001;
   const sides = isHorizontal ? ["top", "bottom"] : ["left", "right"];
   for (const side of sides) {
     for (const layer of effectBySide[side] ?? []) {
-      drawBloodMark(ctx, x1, y1, x2, y2, layer, side, metrics, theme);
+      drawBloodMark(ctx, x1, y1, x2, y2, layer, side, metrics, theme, sizing);
     }
   }
 }
@@ -163,13 +175,13 @@ function hashNoise(key, step) {
   return ((hash >>> 0) % 1000) / 999;
 }
 
-function drawMediumWire(ctx, x1, y1, x2, y2, metrics, theme, wallKey) {
+function drawMediumWire(ctx, x1, y1, x2, y2, metrics, theme, wallKey, sizing) {
   const isHorizontal = Math.abs(y1 - y2) < 0.001;
   const length = isHorizontal ? x2 - x1 : y2 - y1;
-  const segments = Math.max(12, Math.round(length / (10 * metrics.pixelRatio)));
-  const jitter = 4.8 * metrics.pixelRatio;
+  const segments = Math.max(10, Math.round(length / sizing.mediumWireSegment));
+  const jitter = sizing.mediumWireJitter;
   ctx.strokeStyle = theme.wall;
-  ctx.lineWidth = 3 * metrics.pixelRatio;
+  ctx.lineWidth = sizing.mediumWireWidth;
   ctx.beginPath();
 
   for (let i = 0; i <= segments; i += 1) {
@@ -191,13 +203,13 @@ function drawMediumWire(ctx, x1, y1, x2, y2, metrics, theme, wallKey) {
   ctx.stroke();
 
   ctx.strokeStyle = theme.wallVariation;
-  ctx.lineWidth = 1.35 * metrics.pixelRatio;
+  ctx.lineWidth = sizing.mediumWireDetailWidth;
   ctx.beginPath();
   for (let i = 0; i <= segments; i += 1) {
     const t = i / segments;
     const baseX = x1 + (x2 - x1) * t;
     const baseY = y1 + (y2 - y1) * t;
-    const roughNoise = (hashNoise(`${wallKey}:rough`, i) - 0.5) * 1.8 * metrics.pixelRatio;
+    const roughNoise = (hashNoise(`${wallKey}:rough`, i) - 0.5) * sizing.mediumWireRoughNoise;
     const px = isHorizontal ? baseX : baseX + roughNoise;
     const py = isHorizontal ? baseY + roughNoise : baseY;
     if (i === 0) ctx.moveTo(px, py);
@@ -206,7 +218,7 @@ function drawMediumWire(ctx, x1, y1, x2, y2, metrics, theme, wallKey) {
   ctx.stroke();
 }
 
-function drawHardNeonWall(ctx, x1, y1, x2, y2, metrics, theme, progress) {
+function drawHardNeonWall(ctx, x1, y1, x2, y2, metrics, theme, progress, sizing) {
   const collapse = progress * progress;
   const alpha = 1 - collapse;
   const midX = (x1 + x2) * 0.5;
@@ -219,21 +231,21 @@ function drawHardNeonWall(ctx, x1, y1, x2, y2, metrics, theme, progress) {
   if (alpha <= 0.02) return;
 
   ctx.strokeStyle = rgbaFromHex(theme.wallGlow, 0.12 * alpha);
-  ctx.lineWidth = 8 * metrics.pixelRatio;
+  ctx.lineWidth = sizing.hardGlowWidth;
   ctx.beginPath();
   ctx.moveTo(sx1, sy1);
   ctx.lineTo(sx2, sy2);
   ctx.stroke();
 
   ctx.strokeStyle = rgbaFromHex(theme.wallEdge, 0.18 * alpha);
-  ctx.lineWidth = 5.8 * metrics.pixelRatio;
+  ctx.lineWidth = sizing.hardEdgeWidth;
   ctx.beginPath();
   ctx.moveTo(sx1, sy1);
   ctx.lineTo(sx2, sy2);
   ctx.stroke();
 
   ctx.strokeStyle = rgbaFromHex(theme.wall, alpha);
-  ctx.lineWidth = 3.8 * metrics.pixelRatio;
+  ctx.lineWidth = sizing.hardCoreWidth;
   ctx.beginPath();
   ctx.moveTo(sx1, sy1);
   ctx.lineTo(sx2, sy2);
@@ -255,11 +267,7 @@ function hardWallProgress(state, key, now) {
 
 export function drawWalls(ctx, state, metrics, theme, now) {
   const { originX, originY, cellW, cellH } = metrics;
-  const wallWidth = state.mode === "medium"
-    ? 10 * metrics.pixelRatio
-    : state.mode === "hard"
-      ? 7 * metrics.pixelRatio
-      : Math.max(2.2, Math.min(cellW, cellH) * 0.052);
+  const sizing = getRenderSizing(metrics);
   ctx.lineCap = "round";
 
   for (let r = 0; r < state.rows; r += 1) {
@@ -272,12 +280,12 @@ export function drawWalls(ctx, state, metrics, theme, now) {
         const key = wallKeyFromCell(r, c, "top");
         if (shouldRenderWall(state, key)) {
           if (state.mode === "medium" && state.discoveredWalls.has(key)) {
-            drawMediumWire(ctx, x, y, x + cellW, y, metrics, theme, key);
-            drawMediumBlood(ctx, x, y, x + cellW, y, state.bloodEffects.get(key), metrics, theme);
+            drawMediumWire(ctx, x, y, x + cellW, y, metrics, theme, key, sizing);
+            drawMediumBlood(ctx, x, y, x + cellW, y, state.bloodEffects.get(key), metrics, theme, sizing);
           } else if (state.mode === "hard") {
-            drawHardNeonWall(ctx, x, y, x + cellW, y, metrics, theme, hardWallProgress(state, key, now));
+            drawHardNeonWall(ctx, x, y, x + cellW, y, metrics, theme, hardWallProgress(state, key, now), sizing);
           } else {
-            ctx.lineWidth = wallWidth;
+            ctx.lineWidth = sizing.easyWall;
             ctx.strokeStyle = theme.wall;
             ctx.beginPath();
             ctx.moveTo(x, y);
@@ -291,12 +299,12 @@ export function drawWalls(ctx, state, metrics, theme, now) {
         const key = wallKeyFromCell(r, c, "left");
         if (shouldRenderWall(state, key)) {
           if (state.mode === "medium" && state.discoveredWalls.has(key)) {
-            drawMediumWire(ctx, x, y, x, y + cellH, metrics, theme, key);
-            drawMediumBlood(ctx, x, y, x, y + cellH, state.bloodEffects.get(key), metrics, theme);
+            drawMediumWire(ctx, x, y, x, y + cellH, metrics, theme, key, sizing);
+            drawMediumBlood(ctx, x, y, x, y + cellH, state.bloodEffects.get(key), metrics, theme, sizing);
           } else if (state.mode === "hard") {
-            drawHardNeonWall(ctx, x, y, x, y + cellH, metrics, theme, hardWallProgress(state, key, now));
+            drawHardNeonWall(ctx, x, y, x, y + cellH, metrics, theme, hardWallProgress(state, key, now), sizing);
           } else {
-            ctx.lineWidth = wallWidth;
+            ctx.lineWidth = sizing.easyWall;
             ctx.strokeStyle = theme.wall;
             ctx.beginPath();
             ctx.moveTo(x, y);
@@ -310,12 +318,12 @@ export function drawWalls(ctx, state, metrics, theme, now) {
         const key = wallKeyFromCell(r, c, "bottom");
         if (shouldRenderWall(state, key)) {
           if (state.mode === "medium" && state.discoveredWalls.has(key)) {
-            drawMediumWire(ctx, x, y + cellH, x + cellW, y + cellH, metrics, theme, key);
-            drawMediumBlood(ctx, x, y + cellH, x + cellW, y + cellH, state.bloodEffects.get(key), metrics, theme);
+            drawMediumWire(ctx, x, y + cellH, x + cellW, y + cellH, metrics, theme, key, sizing);
+            drawMediumBlood(ctx, x, y + cellH, x + cellW, y + cellH, state.bloodEffects.get(key), metrics, theme, sizing);
           } else if (state.mode === "hard") {
-            drawHardNeonWall(ctx, x, y + cellH, x + cellW, y + cellH, metrics, theme, hardWallProgress(state, key, now));
+            drawHardNeonWall(ctx, x, y + cellH, x + cellW, y + cellH, metrics, theme, hardWallProgress(state, key, now), sizing);
           } else {
-            ctx.lineWidth = wallWidth;
+            ctx.lineWidth = sizing.easyWall;
             ctx.strokeStyle = theme.wall;
             ctx.beginPath();
             ctx.moveTo(x, y + cellH);
@@ -329,12 +337,12 @@ export function drawWalls(ctx, state, metrics, theme, now) {
         const key = wallKeyFromCell(r, c, "right");
         if (shouldRenderWall(state, key)) {
           if (state.mode === "medium" && state.discoveredWalls.has(key)) {
-            drawMediumWire(ctx, x + cellW, y, x + cellW, y + cellH, metrics, theme, key);
-            drawMediumBlood(ctx, x + cellW, y, x + cellW, y + cellH, state.bloodEffects.get(key), metrics, theme);
+            drawMediumWire(ctx, x + cellW, y, x + cellW, y + cellH, metrics, theme, key, sizing);
+            drawMediumBlood(ctx, x + cellW, y, x + cellW, y + cellH, state.bloodEffects.get(key), metrics, theme, sizing);
           } else if (state.mode === "hard") {
-            drawHardNeonWall(ctx, x + cellW, y, x + cellW, y + cellH, metrics, theme, hardWallProgress(state, key, now));
+            drawHardNeonWall(ctx, x + cellW, y, x + cellW, y + cellH, metrics, theme, hardWallProgress(state, key, now), sizing);
           } else {
-            ctx.lineWidth = wallWidth;
+            ctx.lineWidth = sizing.easyWall;
             ctx.strokeStyle = theme.wall;
             ctx.beginPath();
             ctx.moveTo(x + cellW, y);

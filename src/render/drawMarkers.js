@@ -1,3 +1,5 @@
+import { getRenderSizing } from "./renderSizing.js";
+
 function addHexAlpha(hex, alpha) {
   const value = Math.max(0, Math.min(255, Math.round(alpha * 255)));
   return `${hex}${value.toString(16).padStart(2, "0")}`;
@@ -5,8 +7,9 @@ function addHexAlpha(hex, alpha) {
 
 export function drawMarkers(ctx, state, metrics, theme) {
   const { originX, originY, cellW, cellH } = metrics;
+  const sizing = getRenderSizing(metrics);
   const size = Math.min(cellW, cellH);
-  const line = Math.max(2, size * 0.06);
+  const line = Math.max(sizing.markerStrokeMinCanvasPx, size * sizing.markerStrokeRatio);
 
   const sx = originX + state.start.col * cellW;
   const sy = originY + state.start.row * cellH;
