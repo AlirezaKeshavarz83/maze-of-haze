@@ -6,6 +6,8 @@ import { drawEffects } from "./drawEffects.js";
 import { getEasyTheme } from "./themes/easyTheme.js";
 import { getMediumTheme } from "./themes/mediumTheme.js";
 import { getHardTheme } from "./themes/hardTheme.js";
+import { MOBILE_LAYOUT_BREAKPOINT, isPortraitPhoneViewport, shouldRotateBoardForMobile } from "../core/layout.js";
+import { applyBoardTransform } from "./boardTransform.js";
 
 function themeByMode(mode) {
   if (mode === "easy") return getEasyTheme();
@@ -72,13 +74,27 @@ export function drawScene(ctx, canvas, state, now) {
   drawBoard(ctx, canvas.width, canvas.height, theme, state.mode);
   if (!state.maze) return;
 
-  const outerPad = Math.max(24, Math.min(canvas.width, canvas.height) * 0.03);
-  const availableWidth = canvas.width - outerPad * 2;
-  const availableHeight = canvas.height - outerPad * 2;
-  const scale = Math.min(availableWidth / state.cols, availableHeight / state.rows);
+  const cssWidth = canvas.clientWidth || canvas.width;
+  const cssHeight = canvas.clientHeight || canvas.height;
+  const pixelRatio = cssWidth > 0 ? canvas.width / cssWidth : 1;
+  const isPhoneWidth = cssWidth <= MOBILE_LAYOUT_BREAKPOINT;
+  const isPortraitPhone = isPortraitPhoneViewport(cssWidth, cssHeight);
+  const rotateBoard = shouldRotateBoardForMobile(cssWidth, cssHeight, state.rows, state.cols);
+  const outerPad = Math.max(24 * pixelRatio, Math.min(canvas.width, canvas.height) * 0.03);
+  const fallbackTopInset = isPortraitPhone ? 118 * pixelRatio : 44 * pixelRatio;
+  const topInset = isPhoneWidth
+    ? (state.layoutTopInset > 0 ? state.layoutTopInset * pixelRatio : fallbackTopInset)
+    : 0;
+  const bottomInset = isPortraitPhone ? 10 * pixelRatio : 0;
+  const availableWidth = Math.max(pixelRatio, canvas.width - outerPad * 2);
+  const availableHeight = Math.max(pixelRatio, canvas.height - outerPad * 2 - topInset - bottomInset);
+  const displayCols = rotateBoard ? state.rows : state.cols;
+  const displayRows = rotateBoard ? state.cols : state.rows;
+  const scale = Math.min(availableWidth / displayCols, availableHeight / displayRows);
   const boardWidth = scale * state.cols;
   const boardHeight = scale * state.rows;
-  const pixelRatio = canvas.clientWidth > 0 ? canvas.width / canvas.clientWidth : 1;
+  const renderedBoardWidth = rotateBoard ? boardHeight : boardWidth;
+  const renderedBoardHeight = rotateBoard ? boardWidth : boardHeight;
   const driftEnabled = state.mode === "hard";
   const driftX = driftEnabled ? Math.sin(now * 0.00023) * 3 * pixelRatio : 0;
   const driftY = driftEnabled ? Math.cos(now * 0.00019) * 2 * pixelRatio : 0;
@@ -91,19 +107,33 @@ export function drawScene(ctx, canvas, state, now) {
     shakeX = pulse * state.shake.amplitude * decay * pixelRatio;
     shakeY = Math.cos(t * Math.PI * 3.2) * state.shake.amplitude * 0.5 * decay * pixelRatio;
   }
+  const displayOriginX = (canvas.width - renderedBoardWidth) / 2 + driftX + shakeX;
+  const displayOriginY = outerPad + topInset + (availableHeight - renderedBoardHeight) / 2 + driftY + shakeY;
+  const transform = rotateBoard
+    ? {
+        rotated: true,
+        originX: displayOriginX,
+        originY: displayOriginY,
+        renderedWidth: renderedBoardWidth
+      }
+    : null;
   const metrics = {
-    originX: (canvas.width - boardWidth) / 2 + driftX + shakeX,
-    originY: (canvas.height - boardHeight) / 2 + driftY + shakeY,
+    originX: rotateBoard ? 0 : displayOriginX,
+    originY: rotateBoard ? 0 : displayOriginY,
     cellW: scale,
     cellH: scale,
     rows: state.rows,
     cols: state.cols,
-    pixelRatio
+    pixelRatio,
+    transform
   };
 
+  ctx.save();
+  applyBoardTransform(ctx, transform);
   drawBoardBoundaries(ctx, metrics, state.mode);
   drawWalls(ctx, state, metrics, theme, now);
   drawMarkers(ctx, state, metrics, theme);
   drawPlayer(ctx, state, metrics, theme, now);
+  ctx.restore();
   drawEffects(ctx, canvas, state, theme, now, metrics);
 }

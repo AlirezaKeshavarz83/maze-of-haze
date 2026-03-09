@@ -69,7 +69,7 @@ function drawCollapseAmbient(ctx, width, height, now) {
   }
 }
 
-function drawCollapseBursts(ctx, bursts, now, metrics) {
+export function drawCollapseBursts(ctx, bursts, now, metrics) {
   const scale = Math.min(metrics.cellW, metrics.cellH);
   for (const burst of bursts) {
     const t = Math.max(0, Math.min(1, (now - burst.createdAt) / burst.lifetime));
@@ -92,7 +92,7 @@ function drawCollapseBursts(ctx, bursts, now, metrics) {
   }
 }
 
-export function drawCollapseEffects(ctx, width, height, state, now, metrics) {
+export function drawCollapseOverlay(ctx, width, height, now) {
   const vignette = ctx.createRadialGradient(
     width / 2,
     height / 2,
@@ -107,6 +107,10 @@ export function drawCollapseEffects(ctx, width, height, state, now, metrics) {
   ctx.fillRect(0, 0, width, height);
 
   drawCollapseAmbient(ctx, width, height, now);
+}
+
+export function drawCollapseEffects(ctx, width, height, state, now, metrics) {
+  drawCollapseOverlay(ctx, width, height, now);
   if (metrics) {
     drawCollapseBursts(ctx, state.collapseBursts, now, metrics);
   }

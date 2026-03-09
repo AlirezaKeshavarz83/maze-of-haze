@@ -20,6 +20,7 @@ export function createInitialState() {
     disappearingWall: null,
     animation: null,
     inputLockedUntil: 0,
-    shake: null
+    shake: null,
+    layoutTopInset: 0
   };
 }

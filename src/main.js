@@ -6,6 +6,8 @@ const canvas = document.getElementById("gameCanvas");
 createGame({
   canvas,
   ui: {
+    gameArea: document.querySelector(".game-area"),
+    hudLayer: document.querySelector(".hud-layer"),
     menuScreen: document.getElementById("menuScreen"),
     modePanel: document.getElementById("modePanel"),
     newGameBtn: document.getElementById("newGameBtn"),

@@ -9,7 +9,16 @@ import { handleBlockedMove, cleanupTemporaryWalls } from "../logic/collision.js"
 import { advanceLevel } from "../logic/progression.js";
 import { switchMode } from "../logic/modeSwitch.js";
 import { setupKeyboard } from "../input/keyboard.js";
+import { setupTouch } from "../input/touch.js";
+import { MOBILE_LAYOUT_BREAKPOINT, shouldRotateBoardForMobile } from "./layout.js";
 import { drawScene } from "../render/drawScene.js";
+
+const ROTATED_INPUT_MAP = {
+  up: "left",
+  right: "up",
+  down: "right",
+  left: "down"
+};
 
 export function createGame({ canvas, ui }) {
   const ctx = canvas.getContext("2d");
@@ -34,6 +43,21 @@ export function createGame({ canvas, ui }) {
       canvas.width = width;
       canvas.height = height;
     }
+  }
+
+  function updateLayoutMetrics() {
+    const viewportWidth = canvas.clientWidth || window.innerWidth;
+    const viewportHeight = canvas.clientHeight || window.innerHeight;
+    const mobileLayout = viewportWidth <= MOBILE_LAYOUT_BREAKPOINT;
+    if (!mobileLayout) {
+      state.layoutTopInset = 0;
+      return;
+    }
+
+    const gameRect = ui.gameArea.getBoundingClientRect();
+    const hudRect = ui.hudLayer.getBoundingClientRect();
+    const mobileGap = viewportHeight >= viewportWidth ? 12 : 10;
+    state.layoutTopInset = Math.max(0, hudRect.bottom - gameRect.top + mobileGap);
   }
 
   function prepareLevel() {
@@ -76,6 +100,7 @@ export function createGame({ canvas, ui }) {
 
     ui.levelCompleteOverlay.classList.toggle("hidden", state.screen !== SCREEN.LEVEL_COMPLETE);
     ui.gameCompleteOverlay.classList.toggle("hidden", state.screen !== SCREEN.GAME_COMPLETE);
+    updateLayoutMetrics();
   }
 
   function startRun() {
@@ -91,10 +116,22 @@ export function createGame({ canvas, ui }) {
     updateModeUI();
     updateLevelUI();
     updateScreenUI();
+    updateLayoutMetrics();
   }
 
   function onMove(direction) {
     if (state.screen !== SCREEN.PLAYING) return;
+
+    const viewportWidth = canvas.clientWidth || window.innerWidth;
+    const viewportHeight = canvas.clientHeight || window.innerHeight;
+    const logicalDirection = shouldRotateBoardForMobile(
+      viewportWidth,
+      viewportHeight,
+      state.rows,
+      state.cols
+    )
+      ? ROTATED_INPUT_MAP[direction] ?? direction
+      : direction;
 
     const now = performance.now();
     if (now < state.inputLockedUntil) return;
@@ -102,9 +139,9 @@ export function createGame({ canvas, ui }) {
       return;
     }
 
-    const result = attemptMove(state, direction);
+    const result = attemptMove(state, logicalDirection);
     if (result.blocked) {
-      handleBlockedMove(state, direction, now);
+      handleBlockedMove(state, logicalDirection, now);
       return;
     }
 
@@ -141,6 +178,7 @@ export function createGame({ canvas, ui }) {
     }
     switchMode(state, mode);
     updateModeUI();
+    updateLayoutMetrics();
   }
 
   ui.menuModeButtons.forEach((btn) => {
@@ -174,6 +212,12 @@ export function createGame({ canvas, ui }) {
   });
 
   const teardownKeyboard = setupKeyboard(onMove);
+  const teardownTouch = setupTouch({
+    element: ui.gameArea,
+    onDirection: onMove,
+    isEnabled: () => state.screen === SCREEN.PLAYING
+  });
+  const viewport = window.visualViewport;
 
   function tick(now) {
     resizeCanvas();
@@ -193,14 +237,26 @@ export function createGame({ canvas, ui }) {
   updateLevelUI();
   updateScreenUI();
   resizeCanvas();
+  updateLayoutMetrics();
   window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("resize", updateLayoutMetrics);
+  viewport?.addEventListener("resize", resizeCanvas);
+  viewport?.addEventListener("resize", updateLayoutMetrics);
+  viewport?.addEventListener("scroll", resizeCanvas);
+  viewport?.addEventListener("scroll", updateLayoutMetrics);
   requestAnimationFrame(tick);
 
   return {
     destroy() {
       if (levelAdvanceTimer) clearTimeout(levelAdvanceTimer);
       window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("resize", updateLayoutMetrics);
+      viewport?.removeEventListener("resize", resizeCanvas);
+      viewport?.removeEventListener("resize", updateLayoutMetrics);
+      viewport?.removeEventListener("scroll", resizeCanvas);
+      viewport?.removeEventListener("scroll", updateLayoutMetrics);
       teardownKeyboard();
+      teardownTouch();
     }
   };
 }

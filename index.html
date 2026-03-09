@@ -2,32 +2,38 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Maze of Haze</title>
   </head>
   <body>
     <div id="app">
-      <header class="topbar">
-        <div class="brand">Maze of Haze</div>
-        <p class="topbar-copy">Arrow keys or WASD</p>
-      </header>
+      <div class="hud-layer">
+        <header class="topbar">
+          <div class="brand">Maze of Haze</div>
+          <p class="topbar-copy">
+            <span class="desktop-instructions">Arrow keys or WASD</span>
+            <span class="mobile-instructions">Swipe to move</span>
+          </p>
+        </header>
+
+        <aside class="sidebar hidden" id="modePanel">
+          <div class="status-stack">
+            <span id="levelLabel"></span>
+            <span id="modeLabel"></span>
+          </div>
+          <div class="mode-buttons">
+            <button class="mode-btn" data-mode="easy">Before</button>
+            <button class="mode-btn" data-mode="medium">Collapse</button>
+            <button class="mode-btn" data-mode="hard">After</button>
+          </div>
+        </aside>
+      </div>
+
       <div class="creator-tag">Creative Sundays</div>
 
       <main class="layout">
         <section class="game-area">
           <canvas id="gameCanvas"></canvas>
-
-          <aside class="sidebar hidden" id="modePanel">
-            <div class="status-stack">
-              <span id="levelLabel"></span>
-              <span id="modeLabel"></span>
-            </div>
-            <div class="mode-buttons">
-              <button class="mode-btn" data-mode="easy">Before</button>
-              <button class="mode-btn" data-mode="medium">Collapse</button>
-              <button class="mode-btn" data-mode="hard">After</button>
-            </div>
-          </aside>
 
           <div class="overlay menu-overlay" id="menuScreen">
             <div class="card intro-card">
